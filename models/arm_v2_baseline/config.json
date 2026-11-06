@@ -1,0 +1,116 @@
+{
+ "n_sensors": 20,
+ "n_joints": 7,
+ "n_skins": 3,
+ "width": 32,
+ "self_threshold_mm": 180,
+ "sensors": [
+  "right_shoulder_sensor_0",
+  "right_shoulder_sensor_1",
+  "right_shoulder_sensor_2",
+  "right_shoulder_sensor_3",
+  "right_shoulder_sensor_4",
+  "right_shoulder_sensor_5",
+  "right_upper_arm_sensor_0",
+  "right_upper_arm_sensor_1",
+  "right_upper_arm_sensor_2",
+  "right_upper_arm_sensor_3",
+  "right_upper_arm_sensor_4",
+  "right_upper_arm_sensor_5",
+  "right_forearm_sensor_0",
+  "right_forearm_sensor_1",
+  "right_forearm_sensor_2",
+  "right_forearm_sensor_3",
+  "right_forearm_sensor_4",
+  "right_forearm_sensor_5",
+  "right_forearm_sensor_6",
+  "right_forearm_sensor_7"
+ ],
+ "skins": [
+  "right_shoulder",
+  "right_upper_arm",
+  "right_forearm"
+ ],
+ "joints": [
+  "right_shoulder_pitch_joint",
+  "right_shoulder_roll_joint",
+  "right_shoulder_yaw_joint",
+  "right_elbow_joint",
+  "right_wrist_roll_joint",
+  "right_wrist_pitch_joint",
+  "right_wrist_yaw_joint"
+ ],
+ "data": "data/arm_v2",
+ "split": {
+  "train": 960,
+  "val": 120,
+  "test": 120
+ },
+ "train_log": [
+  {
+   "epoch": 1,
+   "train_loss": 1.3755745938618977,
+   "val_zone_acc": 0.9511997788533303,
+   "val_self_recall": 0.8849374110953059,
+   "val_clear_mae": 0.1400298774242401,
+   "val_near_recall": 0.03233392122281011,
+   "seconds": 280.0584259000607
+  },
+  {
+   "epoch": 2,
+   "train_loss": 0.4826523473262787,
+   "val_zone_acc": 0.9755496863000094,
+   "val_self_recall": 0.9725362731152205,
+   "val_clear_mae": 0.12475515156984329,
+   "val_near_recall": 0.21487360376249265,
+   "seconds": 275.344724799972
+  },
+  {
+   "epoch": 3,
+   "train_loss": 0.38690416900316876,
+   "val_zone_acc": 0.98100172056358,
+   "val_self_recall": 0.9797624466571835,
+   "val_clear_mae": 0.11640632897615433,
+   "val_near_recall": 0.31275720164609055,
+   "seconds": 279.1408718000166
+  },
+  {
+   "epoch": 4,
+   "train_loss": 0.31806036257743836,
+   "val_zone_acc": 0.9825852055811714,
+   "val_self_recall": 0.985099573257468,
+   "val_clear_mae": 0.10940805077552795,
+   "val_near_recall": 0.44591416813639034,
+   "seconds": 281.21970620006323
+  },
+  {
+   "epoch": 5,
+   "train_loss": 0.27426645851135256,
+   "val_zone_acc": 0.9840968634553358,
+   "val_self_recall": 0.9838975817923187,
+   "val_clear_mae": 0.10872620344161987,
+   "val_near_recall": 0.43386243386243384,
+   "seconds": 294.516158600105
+  },
+  {
+   "epoch": 6,
+   "train_loss": 0.25318757410844167,
+   "val_zone_acc": 0.9843740555299693,
+   "val_self_recall": 0.9839217638691323,
+   "val_clear_mae": 0.10846006870269775,
+   "val_near_recall": 0.4306290417401529,
+   "seconds": 291.7757858999539
+  }
+ ],
+ "args": {
+  "cmd": "train",
+  "data": "data/arm_v2",
+  "out": "models/arm_v2_baseline",
+  "epochs": 6,
+  "batch": 256,
+  "lr": 0.002,
+  "width": 32,
+  "clear_weight": 5.0,
+  "seed": 0
+ }
+}

@@ -1,0 +1,206 @@
+# RViz for the proximity skins (skin.launch.py): the robot, the lidar cloud,
+# each skin's ToF cloud (coloured by range), the dermis sleeves and each
+# sensor's field of view cut at its nearest return.
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Reference Frame: <Fixed Frame>
+      Plane Cell Count: 10
+      Cell Size: 1
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel
+      Enabled: true
+      Alpha: 0.8
+      Description Source: Topic
+      Description Topic:
+        Value: /robot_description
+        Depth: 5
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Visual Enabled: true
+      Collision Enabled: false
+    - Class: rviz_default_plugins/PointCloud2
+      Name: lidar
+      Enabled: true
+      Topic:
+        Value: /livox/pointcloud
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+      Style: Points
+      Size (Pixels): 2
+      Color Transformer: Intensity
+      Channel Name: z
+      Use rainbow: true
+      Autocompute Intensity Bounds: true
+      Decay Time: 0
+      Position Transformer: XYZ
+      Queue Size: 10
+      Alpha: 1
+    - Class: rviz_default_plugins/MarkerArray
+      Name: skin dermis
+      Enabled: true
+      Namespaces: {}
+      Topic:
+        Value: /skin/description_markers
+        Depth: 5
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+    - Class: rviz_default_plugins/MarkerArray
+      Name: skin fields of view
+      Enabled: true
+      Namespaces: {}
+      Topic:
+        Value: /skin/proximity_markers
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+    - Class: rviz_default_plugins/PointCloud2
+      Name: skin left_upper_arm
+      Enabled: true
+      Topic:
+        Value: /skin/left_upper_arm/points
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+      Style: Spheres
+      Size (m): 0.012
+      Color Transformer: Intensity
+      Channel Name: range
+      Use rainbow: true
+      Autocompute Intensity Bounds: true
+      Decay Time: 0
+      Position Transformer: XYZ
+      Queue Size: 10
+      Alpha: 1
+    - Class: rviz_default_plugins/PointCloud2
+      Name: skin right_upper_arm
+      Enabled: true
+      Topic:
+        Value: /skin/right_upper_arm/points
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+      Style: Spheres
+      Size (m): 0.012
+      Color Transformer: Intensity
+      Channel Name: range
+      Use rainbow: true
+      Autocompute Intensity Bounds: true
+      Decay Time: 0
+      Position Transformer: XYZ
+      Queue Size: 10
+      Alpha: 1
+    - Class: rviz_default_plugins/PointCloud2
+      Name: skin left_forearm
+      Enabled: true
+      Topic:
+        Value: /skin/left_forearm/points
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+      Style: Spheres
+      Size (m): 0.012
+      Color Transformer: Intensity
+      Channel Name: range
+      Use rainbow: true
+      Autocompute Intensity Bounds: true
+      Decay Time: 0
+      Position Transformer: XYZ
+      Queue Size: 10
+      Alpha: 1
+    - Class: rviz_default_plugins/PointCloud2
+      Name: skin right_forearm
+      Enabled: true
+      Topic:
+        Value: /skin/right_forearm/points
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+      Style: Spheres
+      Size (m): 0.012
+      Color Transformer: Intensity
+      Channel Name: range
+      Use rainbow: true
+      Autocompute Intensity Bounds: true
+      Decay Time: 0
+      Position Transformer: XYZ
+      Queue Size: 10
+      Alpha: 1
+    - Class: rviz_default_plugins/PointCloud2
+      Name: skin left_shoulder
+      Enabled: true
+      Topic:
+        Value: /skin/left_shoulder/points
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+      Style: Spheres
+      Size (m): 0.012
+      Color Transformer: Intensity
+      Channel Name: range
+      Use rainbow: true
+      Autocompute Intensity Bounds: true
+      Decay Time: 0
+      Position Transformer: XYZ
+      Queue Size: 10
+      Alpha: 1
+    - Class: rviz_default_plugins/PointCloud2
+      Name: skin right_shoulder
+      Enabled: true
+      Topic:
+        Value: /skin/right_shoulder/points
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+      Style: Spheres
+      Size (m): 0.012
+      Color Transformer: Intensity
+      Channel Name: range
+      Use rainbow: true
+      Autocompute Intensity Bounds: true
+      Decay Time: 0
+      Position Transformer: XYZ
+      Queue Size: 10
+      Alpha: 1
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: pelvis
+    Frame Rate: 30
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Current View
+      Distance: 2.5
+      Focal Point:
+        X: 0.2
+        Y: 0
+        Z: 0.1
+      Pitch: 0.35
+      Yaw: 2.8
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz)

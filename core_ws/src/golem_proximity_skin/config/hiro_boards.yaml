@@ -1,0 +1,28 @@
+# HIRO skin boards this PC listens to (golem_proximity_skin.hiro_udp), edited by hand.
+#
+# Each board sends its skin's frames to the skin's UDP port (h12_skin.yaml `port`,
+# from HIRO's sensors_config.yaml). A board may drive fewer sensors than its skin
+# has, in its own order: `sensors[k]` is the layout sensor (<skin>_sensor_<i>)
+# that firmware index k is. Find it with `hiro_udp identify` (cover one sensor at
+# a time) and set `verified: true` once every entry is checked.
+
+boards:
+  # SparkFun ESP32 board, 192.168.123.9 on HumanoidNetwork, PCA9546A mux (4 channels):
+  # 4 of the skin's 6 sensors; firmware sensors 0-3 sit on mux ports 1, 2, 3, 0.
+  # Fitted in the 4 sockets nearest the torso (layout 5, 4, 3, 0; 1 and 2 empty).
+  # Mapped 2026-11-06 by covering them inside to outside: firmware 0, 1, 2, 3 in turn
+  # (recording skin_data/real/right_upper_arm_mapping.npz).
+  # masked_zones: the shell clips firmware 1's view (pocket 4, back lower): 4 zones
+  # obscured, 12 masked with a 1-zone margin, measured 2026-11-06 with the shell mounted
+  # (skin_data/real/right_upper_arm_mask_open.npz). Re-measure after taking the skin apart.
+  - skin: right_upper_arm
+    sensors: [5, 4, 3, 0]
+    masked_zones: {1: [1, 2, 3, 10, 31, 38, 39, 47, 54, 55, 62, 63]}
+    # Not verified: a later check (covering the back upper, then back lower sensor)
+    # lit firmware 3, then 2, which this map does not predict. Re-map before use.
+    verified: false
+
+  # The right knee practice skin: 5 sensors.
+  - skin: right_knee
+    sensors: [0, 1, 2, 3, 4]
+    verified: false

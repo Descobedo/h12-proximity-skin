@@ -1,0 +1,170 @@
+diff --git a/docker/docker-compose.yml b/docker/docker-compose.yml
+index a32ad95..91efd0c 100644
+--- a/docker/docker-compose.yml
++++ b/docker/docker-compose.yml
+@@ -111,6 +111,11 @@ services:
+       - GOLEM_SIM_TETHER_ROT_BODY=${GOLEM_SIM_TETHER_ROT_BODY:-}
+       # "dx,dy" m (world) added to the task spawn; empty = task spawn.
+       - GOLEM_SPAWN_OFFSET=${GOLEM_SPAWN_OFFSET:-}
++      # 1 = publish the proximity skins' VL53L5CX readings, /skin/<name>/tof
++      # (golem_robocasa/tof_skin_sensors.py); off by default. GOLEM_TOF_SKIN_CONFIG:
++      # layout YAML path in this container; empty = the package's h12_skin.yaml.
++      - GOLEM_TOF_SKIN=${GOLEM_TOF_SKIN:-0}
++      - GOLEM_TOF_SKIN_CONFIG=${GOLEM_TOF_SKIN_CONFIG:-}
+     volumes:
+       - type: bind
+         source: ../golem_robocasa
+@@ -129,6 +134,14 @@ services:
+         read_only: true
+         bind:
+           create_host_path: false
++      # The proximity skins' layout and ToF model (pure Python), read by the sim
++      # only with GOLEM_TOF_SKIN=1, so sim and ROS share one layout.
++      - type: bind
++        source: ../core_ws/src/golem_proximity_skin
++        target: /home/code/golem_proximity_skin
++        read_only: true
++        bind:
++          create_host_path: false
+       # Only the message packages the magpi sim needs — keeps the rest of
+       # core_ws (model_server weights, FAST_LIO, root-owned host build
+       # dir, etc.) out of this container. The parent rw mount persists
+diff --git a/golem_robocasa/h12_mujoco.py b/golem_robocasa/h12_mujoco.py
+index 3012434..752ac56 100644
+--- a/golem_robocasa/h12_mujoco.py
++++ b/golem_robocasa/h12_mujoco.py
+@@ -26,6 +26,7 @@ import realsense_profile
+ import battery_env  # registers the Battery workcell env
+ import blank_env  # registers the Blank env
+ from h12_sensors import H12Sensors
++from tof_skin_sensors import with_tof_skin
+ from magpie_hand_bridge import MagpieHandBridge
+ from measurement_bridge import MeasurementBridge
+ from mujoco_env import ElasticBand, draw_band
+@@ -280,7 +281,8 @@ def sim_loop(task, viewer=True, layout=None, style=None, seed=None, timing=False
+     timings = LoopTimings(enabled=timing)
+     ros_bridge = RosSensorBridge(
+         model, data,
+-        lambda node: H12Sensors(
++        # GOLEM_TOF_SKIN=1 adds the proximity skins (tof_skin_sensors.py); off by default.
++        lambda node: with_tof_skin(H12Sensors(
+             node, model, data,
+             cameras=_cameras,
+             camera_tf=realsense_profile.tf_edges(_profile, [ns for ns, _ in _camera_names]),
+@@ -315,7 +317,7 @@ def sim_loop(task, viewer=True, layout=None, style=None, seed=None, timing=False
+             ),
+             sim_lock=sim_lock,
+             timings=timings,
+-        ),
++        ), node, model, data, body_prefix=pfx, sim_lock=sim_lock),
+         base_body_id=odom_base_body_id,   # -> odom -> pelvis TF + /odom
+         sim_lock=sim_lock,
+     )
+diff --git a/golem_robocasa/tof_skin_sensors.py b/golem_robocasa/tof_skin_sensors.py
+new file mode 100644
+index 0000000..ef472b1
+--- /dev/null
++++ b/golem_robocasa/tof_skin_sensors.py
+@@ -0,0 +1,102 @@
++"""The H1-2's proximity skins (VL53L5CX ToF sleeves), opt-in with GOLEM_TOF_SKIN=1.
++
++Publishes, per skin in the layout, what the skin's hardware bridge publishes:
++  /skin/<name>/tof    std_msgs/UInt16MultiArray (sensor x zone, mm; 0 = no return)
++at the layout's rate_hz keyed off sim time. The layout, the VL53L5CX model and
++the ray cast are core_ws/src/golem_proximity_skin's (mounted into this
++container at GOLEM_TOF_SKIN_PKG), so sim readings and the ROS nodes agree on
++every frame. The skin's frames come from that package's skin_description
++node, as they would on the real robot.
++
++The cast reads an MjData snapshot taken under sim_lock and runs on the
++physics thread: 64 rays per sensor, a few thousand per cycle, far fewer
++than one lidar scan.
++"""
++import copy
++import os
++import sys
++from contextlib import nullcontext
++
++DEFAULT_PKG = '/home/code/golem_proximity_skin'
++DEFAULT_CONFIG = 'config/h12_skin.yaml'
++
++
++def enabled() -> bool:
++    return os.environ.get('GOLEM_TOF_SKIN', '0').strip().lower() not in ('0', 'off', 'false', 'no', '')
++
++
++def _import_skin_package():
++    pkg = os.environ.get('GOLEM_TOF_SKIN_PKG', '').strip() or DEFAULT_PKG
++    if pkg not in sys.path:
++        sys.path.insert(0, pkg)
++    from golem_proximity_skin import layout, messages, mujoco_tof, sensor_model
++    return pkg, layout, messages, mujoco_tof, sensor_model
++
++
++class ToFSkinSensors:
++    """A sensor suite (mujoco_ros_bridge.SensorSuite) for the proximity skins."""
++
++    def __init__(self, node, model, data, body_prefix: str = '', sim_lock=None):
++        pkg, layout_mod, self._messages, mujoco_tof, sensor_model = _import_skin_package()
++        config = os.environ.get('GOLEM_TOF_SKIN_CONFIG', '').strip() or os.path.join(pkg, DEFAULT_CONFIG)
++        layout = layout_mod.load_layout(config)
++        self.data = data
++        self.sim_lock = sim_lock
++        # The fitted VL53L5CX model (noise, invalid-zone flicker, the firmware's rate);
++        # GOLEM_TOF_SKIN_IDEAL=1 casts exact first-hit distances at the layout's rate.
++        sensor = None
++        if os.environ.get('GOLEM_TOF_SKIN_IDEAL', '0').strip().lower() in ('0', 'off', 'false', 'no', ''):
++            sensor = sensor_model.SensorModel.load(os.path.join(pkg, 'config', 'vl53l5cx_model.yaml'))
++            layout.rate_hz = sensor.rate_hz
++        self.caster = mujoco_tof.ToFSkinCaster(model, layout, body_prefixes=(body_prefix, ''),
++                                               sensor_model=sensor)
++        self.period = 1.0 / layout.rate_hz
++        self._last_sim_t = -float('inf')
++        self._pubs = {s.name: node.create_publisher(
++            self._messages.UInt16MultiArray, self._messages.tof_topic(s.name), 10)
++            for s in self.caster.skins}
++        self._scans = 0
++        print(f'[tof_skin] {len(self._pubs)} skins, {layout.sensor_count()} VL53L5CX sensors '
++              f'at {layout.rate_hz:.1f} Hz ({"ideal" if sensor is None else "fitted sensor model"}) '
++              f'from {config}')
++
++    def tick(self, sim_t: float, stamp) -> None:
++        if sim_t - self._last_sim_t < self.period:
++            return
++        self._last_sim_t = sim_t
++        with self.sim_lock or nullcontext():
++            snapshot = copy.copy(self.data)
++        for name, readings in self.caster.cast(snapshot).items():
++            self._pubs[name].publish(self._messages.to_msg(readings))
++        self._scans += 1
++
++    def shutdown(self) -> None:
++        pass
++
++    def stats(self) -> str:
++        return f'tof_skin scans={self._scans}'
++
++
++class SuiteGroup:
++    """Several sensor suites ticked in order as one."""
++
++    def __init__(self, *suites):
++        self.suites = suites
++
++    def tick(self, sim_t: float, stamp) -> None:
++        for s in self.suites:
++            s.tick(sim_t, stamp)
++
++    def shutdown(self) -> None:
++        for s in self.suites:
++            s.shutdown()
++
++    def stats(self) -> str:
++        return ' '.join(x for x in (s.stats() for s in self.suites) if x)
++
++
++def with_tof_skin(suite, node, model, data, body_prefix: str = '', sim_lock=None):
++    """`suite`, plus the proximity skins when GOLEM_TOF_SKIN is on."""
++    if not enabled():
++        return suite
++    return SuiteGroup(suite, ToFSkinSensors(node, model, data, body_prefix, sim_lock))

@@ -1,0 +1,16 @@
+# Tested with Python 3.14 on Windows 11 and these releases (2026-11). MuJoCo 3.3.1 also
+# works for the simulation code (GOLEM's RoboCasa image pins it), but on Windows its
+# wheels crashed under Anaconda Python 3.10; use a recent CPython with mujoco >= 3.17.
+mujoco>=3.17
+numpy>=2.0
+pyyaml>=6.0
+pillow>=10
+matplotlib>=3.8
+imageio>=2.30
+imageio-ffmpeg>=0.5
+pytest>=8
+# Only for the baseline model (golem_proximity_skin.baseline); the CPU build is enough:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.9
+# Only for setup_scene.py --hf (the gated nickljal/proxHumanoid recordings):
+huggingface_hub>=0.30
