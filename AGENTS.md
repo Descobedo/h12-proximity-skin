@@ -232,6 +232,8 @@ Docker GPU; only the offline MuJoCo paths above were.
 | `.../scripts/` | importer (HIRO skins), leg-sphere fitter |
 | `golem_integration/golem_tof_skin.patch` | the GOLEM-side changes |
 | `models/` | trained baselines, with test reports |
+| `tools/lidar_thin/` | real H1-2: lidar view over Wi-Fi, thinned by a temporary read-only process on the robot; viewing only (see its README's restrictions) |
+| `tools/robot_checks/` | real H1-2: read-only check of lidar + ToF skins + safety layer running together |
 
 ## 8. Licences and provenance
 
